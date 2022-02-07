@@ -1,0 +1,7 @@
+vpath % ../stack 
+st : stack.o
+	cc -o st stack.o
+stack.o : stack.h
+.PHONY : clean
+clean :
+	rm *.o st
