@@ -241,3 +241,77 @@ main.o main.d : main.c defs.h
 
 使得.d文件可以自动更新
 
+
+
+## 4. 书写命令
+
+
+
+### 4.1显示命令
+
+若在命令行前加`@`，则该命令不会被显示出来。
+
+```makefile
+@echo 'Compiling'
+```
+
+
+
+make -n 只显示命令，但不会执行，方便查看命令执行顺序
+
+make -s 全面禁止命令的显示
+
+
+
+### 4.2命令执行
+
+如果需要上一条命令的结果被应用于下一条命令，则应用`;`间隔两条命令，而不是换行
+
+```makefile
+exec:
+	cd ~; pwd
+```
+
+
+
+make -i 忽略所有错误
+
+make -k 若某命令出错，则终止该命令，但其他命令照常执行
+
+
+
+### 4.3 嵌套执行make
+
+> 主控make
+
+```makefile
+subsystem:
+    cd subdir && $(MAKE)
+```
+
+> 传递变量
+
+```makefile
+export variable #传递变量
+export #传递所有变量
+unexport variable #不传递
+```
+
+有两个变量，一个是 `SHELL` ，一个是 `MAKEFLAGS` ，这两个变量不管你是否export，其总是要传递到下层 Makefile中，特别是 `MAKEFLAGS` 变量，其中包含了make的参数信息，如果我们执行“总控Makefile”时有make参数或是在上层 Makefile中定义了这个变量，那么 `MAKEFLAGS` 变量将会是这些参数，并会传递到下层Makefile中，这是一个系统级的环境变量。
+
+
+
+但是make命令中的有几个参数并不往下传递，它们是 `-C` , `-f` , `-h`, `-o` 和 `-W`
+
+
+
+### 4.4定义命令包
+
+如果Makefile中出现一些相同命令序列，那么我们可以为这些相同的命令序列定义一个变量。定义这种命令序列的语法以 `define` 开始，以 `endef` 结束
+
+```makefile
+define run-yacc
+yacc $(firstword $^)
+mv y.tab.c $@
+endef
+```

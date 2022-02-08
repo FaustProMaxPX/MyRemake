@@ -18,4 +18,4 @@ include $(sources:.c=.d)
 
 .PHONY : clean
 clean :
-	rm -f *.d* *.o st
+	@rm -f *.d* *.o st
