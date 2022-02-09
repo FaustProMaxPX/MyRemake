@@ -1,0 +1,4 @@
+x := 1
+override MAKEFLAGS := w
+clear :
+	echo $(MAKEFLAGS)

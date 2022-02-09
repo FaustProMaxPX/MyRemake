@@ -1,6 +1,7 @@
 sources = queue.c
 queue : queue.o
 	cc -o queue queue.o
+	@echo $(Make)
 include $(sources:.c=.d)
 
 %.d: %.c

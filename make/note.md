@@ -315,3 +315,204 @@ yacc $(firstword $^)
 mv y.tab.c $@
 endef
 ```
+
+
+
+## 5. 变量
+
+
+
+### 5.1 变量的基础
+
+变量在声明时要赋初值，在使用时，在变量名前加`$`，并将变量名用()包起来。
+
+若要使用真实的`$`，输入`$$`
+
+
+
+> 变量的定义
+
+使用`:=`运算符来定义变量
+
+```makefile
+x := foo
+y := $(x) bar
+x := later
+```
+
+如此，前面的变量便不能使用后面变量的值。
+
+如果直接用`=`赋值，则前面的变量就不可以使用后面的变量（不推荐）
+
+
+
+`#注释符可以用来表示变量定义的终止`
+
+```makefile
+nullstring :=
+space := $(nullstring) #end of line
+dir := /foo/bar    # 4 space left
+```
+
+
+
+`?=`在变量未被赋值的情况下给他赋值，否则略过这条语句
+
+```makefile
+foo ?= bar
+```
+
+
+
+### 5.2 变量高级用法
+
+
+
+> 变量值的替换
+
+`$(var:a=b)`将变量var中所有以字串a**结尾**的‘a’替换为字串'b'。此处结尾指的是空格或结束符
+
+`$(var:%.c=%.d)`作用同上，此种通过静态模式定义。
+
+
+
+> 使用变量的变量
+
+Makefile中的变量类似于宏，可以用于拼接任意东西
+
+```makefile
+x = variable1
+variable2 := Hello
+y = $(subst 1,2,$(x))
+z = y
+a := $($($(z)))
+```
+
+
+
+```makefile
+first_second = Hello
+a = first
+b = second
+all = $($a_$b)
+# $a_$b 拼接成变量名
+```
+
+
+
+```makefile
+ifdef do_sort
+    func := sort
+else
+    func := strip
+endif
+
+bar := a d b g q c
+
+foo := $($(func) $(bar))
+# $(func) $(bar) 分别拼接成函数名及其参数
+```
+
+
+
+> 追加变量值
+
+`+=`
+
+```makefile
+variable := value
+variable += more
+#=== 等价于 ===#
+variable := value
+variable := $(variable) more
+```
+
+
+
+> 多行变量
+
+利用`define`关键字设置变量的值可以有换行，便于定义一系列命令。
+
+变量的值可以包含函数、命令、文字，或是其它变量。因为命令需要以[Tab]键开头，所以如果你用define定义的命令变量中没有以 `Tab` 键开头，那么make 就不会把其认为是命令。
+
+```makefile
+define two-lines
+echo foo
+echo $(bar)
+endef
+```
+
+
+
+> override
+
+如果有变量是通常make的命令行参数设置的，那么Makefile中对这个变量的赋值会被忽略。如果你想在Makefile中设置这类参数的值，那么，你可以使用“override”指示符。其语法是:
+
+```makefile
+override <variable>; = <value>;
+
+override <variable>; := <value>;
+```
+
+当然，你还可以追加:
+
+```
+override <variable>; += <more text>;
+```
+
+
+
+### 5.3 特殊变量
+
+
+
+> 环境变量
+
+make运行时的系统环境变量可以在make开始运行时被载入到Makefile文件中，但是如果Makefile中已定义了这个变量，或是这个变量由make命令行带入，那么系统的环境变量的值将被覆盖。（如果make指定了“-e”参数，那么，系统环境变量将覆盖Makefile中定义的变量）
+
+因此，如果我们在环境变量中设置了 `CFLAGS` 环境变量，那么我们就可以在所有的Makefile中使用这个变量了。这对于我们使用统一的编译参数有比较大的好处。如果Makefile中定义了CFLAGS，那么则会使用Makefile中的这个变量，如果没有定义则使用系统环境变量的值，一个共性和个性的统一，很像“全局变量”和“局部变量”的特性。
+
+当make嵌套调用时（参见前面的“嵌套调用”章节），上层Makefile中定义的变量会以系统环境变量的方式传递到下层的Makefile 中。当然，默认情况下，只有通过命令行设置的变量会被传递。而定义在文件中的变量，如果要向下层Makefile传递，则需要使用exprot关键字来声明。（参见前面章节）
+
+
+
+> 目标变量
+
+为某个目标设置局部变量，其作用范围只在这条规则及其连带的规则中。
+
+语法：
+
+```makefile
+<target ...> : <variable-assignment>
+# 主要用于处理环境变量
+<target ...> : override <variable-assignment> 
+```
+
+
+
+```makefile
+prog : CFLAGS = -g
+prog : prog.o foo.o bar.o
+    $(CC) $(CFLAGS) prog.o foo.o bar.o
+
+prog.o : prog.c
+    $(CC) $(CFLAGS) prog.c
+
+foo.o : foo.c
+    $(CC) $(CFLAGS) foo.c
+
+bar.o : bar.c
+    $(CC) $(CFLAGS) bar.c
+```
+
+
+
+> 模式变量
+
+将变量定义在所有符合模式的目标上
+
+```makefile
+%.o : CFLAGS = -o
+```
+
+语法同目标变量
