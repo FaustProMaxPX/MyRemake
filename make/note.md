@@ -516,3 +516,430 @@ bar.o : bar.c
 ```
 
 语法同目标变量
+
+
+
+## 6. 条件判断
+
+> 语法
+
+```
+<conditional-directive>
+<text-if-true>
+endif
+
+<conditional-directive>
+<text-if-true>
+else
+<text-if-false>
+endif
+```
+
+
+
+> ifeq / ifneq
+
+比较两个参数的值是否相等/不相等
+
+```makefile
+libs_for_gcc = -lgnu
+normal_libs =
+
+foo: $(objects)
+ifeq ($(CC), gcc)
+	$(CC) -o foo $(objects) $(libs_for_gcc)
+else
+	$(CC) -o foo $(objects) $(normal_libs)
+endif
+```
+
+
+
+> ifdef / ifndef
+
+```makefile
+ifdef <variable-name>
+```
+
+判断变量的值是否为空，非空为真，空为假
+
+仅判断一个变量是否有值，而不会将其展开
+
+```makefile
+bar =
+foo = $(bar)# 此处判断为真 
+ifdef foo
+    frobozz = yes
+else
+    frobozz = no
+endif
+```
+
+
+
+**make在读取Makefile时就会计算条件表达式的值，因此不要在此处使用自动化变量**
+
+
+
+## 7. 函数
+
+
+
+> 调用语法
+
+```makefile
+$(<function-name> <arguments>)
+```
+
+函数名与参数之间用空格分隔，参数之间用`,`分隔
+
+
+
+### 7.1 字符串处理函数
+
+
+
+> subst
+
+```makefile
+$(subst <from>, <to>, <text>)
+```
+
+功能：将字串`<text>`中的`<from>`转换为`<to>`
+
+返回：替换后的字符串
+
+
+
+> patsubst
+
+```makefile
+$(patsubst <pattern>,<replacement>)
+```
+
+功能：查找 `<text>` 中的单词**（单词以“空格”、“Tab”或“回车”“换行”分隔）**是否符合模式 `<pattern>` ，如果匹配的话，则以 `<replacement>` 替换。这里， `<pattern>` 可以包括通配符 `%` ，表示任意长度的字串。如果 `<replacement>` 中也包含 `%` ，那么， `<replacement>` 中的这个 `%` 将是 `<pattern>` 中的那个 `%` 所代表的字串。（可以用 `\` 来转义，以 `\%` 来表示真实含义的 `%` 字符）
+
+返回：替换后的字符串
+
+
+
+> strip
+
+```makefile
+$(strip <string>)
+```
+
+功能：去掉<string>字串开头和结尾的空格
+
+返回：被去掉空格的字符串
+
+
+
+> findstring
+
+```makefile
+$(findstring <find>,<in>)
+```
+
+功能：在字串<in>中查找<find>字串
+
+返回：如果找到，返回<find>字串
+
+
+
+> filter / filterout
+
+```makefile
+$(filter <pattern...>, <text>)
+```
+
+功能：以 `<pattern>` 模式过滤/去除 `<text>` 字符串中的单词，保留符合模式 `<pattern>` 的单词。可以有多个模式。
+
+返回：符合模式的字串
+
+
+
+> sort
+
+```makefile
+$(sort <list>)
+```
+
+功能：给字符串 `<list>` 中的单词排序（升序）。
+
+返回：返回排序后的字符串。
+
+示例： `$(sort foo bar lose)` 返回 `bar foo lose` 。
+
+备注： `sort` 函数会去掉 `<list>` 中相同的单词。
+
+
+
+> word
+
+```
+$(word <n>,<text>)
+```
+
+名称：取单词函数
+
+功能：取字符串 `<text>` 中第 `<n>` 个单词。（从一开始）
+
+返回：返回字符串 `<text>` 中第 `<n>` 个单词。如果 `<n>` 比 `<text>` 中的单词数要大，那么返回空字符串。
+
+示例： `$(word 2, foo bar baz)` 返回值是 `bar` 。
+
+
+
+> wordlist
+
+```
+$(wordlist <ss>,<e>,<text>)
+```
+
+名称：取单词串函数
+
+功能：从字符串 `<text>` 中取从 `<ss>` 开始到 `<e>` 的单词串。 `<ss>` 和 `<e>` 是一个数字。
+
+返回：返回字符串 `<text>` 中从 `<ss>` 到 `<e>` 的单词字串。如果 `<ss>` 比 `<text>` 中的单词数要大，那么返回空字符串。如果 `<e>` 大于 `<text>` 的单词数，那么返回从 `<ss>` 开始，到 `<text>` 结束的单词串。
+
+示例： `$(wordlist 2, 3, foo bar baz)` 返回值是 `bar baz` 。
+
+
+
+> firstword
+
+```
+$(firstword <text>)
+```
+
+名称：首单词函数——firstword。
+
+功能：取字符串 `<text>` 中的第一个单词。
+
+返回：返回字符串 `<text>` 的第一个单词。
+
+示例： `$(firstword foo bar)` 返回值是 `foo`。
+
+备注：这个函数可以用 `word` 函数来实现： `$(word 1,<text>)` 。
+
+
+
+### 7.2 文件名处理函数
+
+> dir
+
+```
+$(dir <names...>)
+```
+
+名称：取目录函数——dir。
+
+功能：从文件名序列 `<names>` 中取出目录部分。目录部分是指最后一个反斜杠（ `/` ）之前的部分。如果没有反斜杠，那么返回 `./` 。
+
+返回：返回文件名序列 `<names>` 的目录部分。
+
+示例： `$(dir src/foo.c hacks)` 返回值是 `src/ ./` 。
+
+> notdir
+
+```
+$(notdir <names...>)
+```
+
+名称：取文件函数——notdir。
+
+功能：从文件名序列 `<names>` 中取出非目录部分。非目录部分是指最後一个反斜杠（ `/` ）之后的部分。
+
+返回：返回文件名序列 `<names>` 的非目录部分。
+
+示例: `$(notdir src/foo.c hacks)` 返回值是 `foo.c hacks` 。
+
+> suffix
+
+```
+$(suffix <names...>)
+```
+
+名称：取後缀函数——suffix。
+
+功能：从文件名序列 `<names>` 中取出各个文件名的后缀。
+
+返回：返回文件名序列 `<names>` 的后缀序列，如果文件没有后缀，则返回空字串。
+
+示例： `$(suffix src/foo.c src-1.0/bar.c hacks)` 返回值是 `.c .c`。
+
+> basename
+
+```
+$(basename <names...>)
+```
+
+名称：取前缀函数——basename。
+
+功能：从文件名序列 `<names>` 中取出各个文件名的前缀部分。
+
+返回：返回文件名序列 `<names>` 的前缀序列，如果文件没有前缀，则返回空字串。
+
+示例： `$(basename src/foo.c src-1.0/bar.c hacks)` 返回值是 `src/foo src-1.0/bar hacks` 。
+
+> addsuffix
+
+```
+$(addsuffix <suffix>,<names...>)
+```
+
+名称：加后缀函数——addsuffix。
+
+功能：把后缀 `<suffix>` 加到 `<names>` 中的每个单词后面。
+
+返回：返回加过后缀的文件名序列。
+
+示例： `$(addsuffix .c,foo bar)` 返回值是 `foo.c bar.c` 。
+
+>  addprefix
+
+```
+$(addprefix <prefix>,<names...>)
+```
+
+名称：加前缀函数——addprefix。
+
+功能：把前缀 `<prefix>` 加到 `<names>` 中的每个单词后面。
+
+返回：返回加过前缀的文件名序列。
+
+示例： `$(addprefix src/,foo bar)` 返回值是 `src/foo src/bar` 。
+
+> join
+
+```
+$(join <list1>,<list2>)
+```
+
+名称：连接函数——join。
+
+功能：把 `<list2>` 中的单词对应地加到 `<list1>` 的单词后面。如果 `<list1>` 的单词个数要比 `<list2>` 的多，那么， `<list1>` 中的多出来的单词将保持原样。如果 `<list2>` 的单词个数要比 `<list1>` 多，那么， `<list2>` 多出来的单词将被复制到 `<list1>` 中。
+
+返回：返回连接过后的字符串。
+
+示例： `$(join aaa bbb , 111 222 333)` 返回值是 `aaa111 bbb222 333` 。
+
+
+
+### foreach
+
+```
+$(foreach <var>,<list>,<text>)
+```
+
+这个函数的意思是，把参数 `<list>` 中的单词逐一取出放到参数 `<var>` 所指定的变量中，然后再执行 `<text>` 所包含的表达式。每一次 `<text>` 会返回一个字符串，循环过程中， `<text>` 的所返回的每个字符串会以空格分隔，最后当整个循环结束时， `<text>` 所返回的每个字符串所组成的整个字符串（以空格分隔）将会是foreach函数的返回值。
+
+所以， `<var>` 最好是一个变量名， `<list>` 可以是一个表达式，而 `<text>` 中一般会使用 `<var>` 这个参数来依次枚举 `<list>` 中的单词。举个例子：
+
+```
+names := a b c d
+
+files := $(foreach n,$(names),$(n).o)
+```
+
+上面的例子中， `$(name)` 中的单词会被挨个取出，并存到变量 `n` 中， `$(n).o` 每次根据 `$(n)` 计算出一个值，这些值以空格分隔，最后作为foreach函数的返回，所以， `$(files)` 的值是 `a.o b.o c.o d.o` 。
+
+注意，foreach中的 `<var>` 参数是一个临时的局部变量，foreach函数执行完后，参数 `<var>` 的变量将不在作用，其作用域只在foreach函数当中。
+
+
+
+### call函数
+
+call函数是唯一一个可以用来创建新的参数化的函数。你可以写一个非常复杂的表达式，这个表达式中，你可以定义许多参数，然后你可以call函数来向这个表达式传递参数。其语法是：
+
+```
+$(call <expression>,<parm1>,<parm2>,...,<parmn>)
+```
+
+当make执行这个函数时， `<expression>` 参数中的变量，如 `$(1)` 、 `$(2)` 等，会被参数 `<parm1>` 、 `<parm2>` 、 `<parm3>` 依次取代。而 `<expression>` 的返回值就是 call 函数的返回值。例如：
+
+```
+reverse =  $(1) $(2)
+
+foo = $(call reverse,a,b)
+```
+
+那么， `foo` 的值就是 `a b` 。当然，参数的次序是可以自定义的，不一定是顺序的，如：
+
+```
+reverse =  $(2) $(1)
+
+foo = $(call reverse,a,b)
+```
+
+此时的 `foo` 的值就是 `b a` 。
+
+需要注意：在向 call 函数传递参数时要尤其注意空格的使用。call 函数在处理参数时，第2个及其之后的参数中的空格会被保留，因而可能造成一些奇怪的效果。因而在向call函数提供参数时，最安全的做法是去除所有多余的空格。
+
+
+
+### origin函数
+
+origin函数不像其它的函数，他并不操作变量的值，他只是告诉你你的这个变量是哪里来的？其语法是：
+
+```
+$(origin <variable>)
+```
+
+- 注意， `<variable>` 是变量的名字，不应该是引用。所以你最好不要在 `<variable>` 中使用
+
+  `$` 字符。Origin函数会以其返回值来告诉你这个变量的“出生情况”，下面，是origin函数的返回值:
+
+- `undefined`
+
+  如果 `<variable>` 从来没有定义过，origin函数返回这个值 `undefined`
+
+- `default`
+
+  如果 `<variable>` 是一个默认的定义，比如“CC”这个变量，这种变量我们将在后面讲述。
+
+- `environment`
+
+  如果 `<variable>` 是一个环境变量，并且当Makefile被执行时， `-e` 参数没有被打开。
+
+- `file`
+
+  如果 `<variable>` 这个变量被定义在Makefile中。
+
+- `command line`
+
+  如果 `<variable>` 这个变量是被命令行定义的。
+
+- `override`
+
+  如果 `<variable>` 是被override指示符重新定义的。
+
+- `automatic`
+
+  如果 `<variable>` 是一个命令运行中的自动化变量。关于自动化变量将在后面讲述。
+
+这些信息对于我们编写Makefile是非常有用的，例如，假设我们有一个Makefile其包了一个定义文件 Make.def，在 Make.def中定义了一个变量“bletch”，而我们的环境中也有一个环境变量“bletch”，此时，我们想判断一下，如果变量来源于环境，那么我们就把之重定义了，如果来源于Make.def或是命令行等非环境的，那么我们就不重新定义它。于是，在我们的Makefile中，我们可以这样写：
+
+```
+ifdef bletch
+    ifeq "$(origin bletch)" "environment"
+        bletch = barf, gag, etc.
+    endif
+endif
+```
+
+当然，你也许会说，使用 `override` 关键字不就可以重新定义环境中的变量了吗？为什么需要使用这样的步骤？是的，我们用 `override` 是可以达到这样的效果，可是 `override` 过于粗暴，它同时会把从命令行定义的变量也覆盖了，而我们只想重新定义环境传来的，而不想重新定义命令行传来的。
+
+
+
+### shell函数
+
+shell函数也不像其它的函数。顾名思义，它的参数应该就是操作系统Shell的命令。它和反引号“`”是相同的功能。这就是说，shell函数把执行操作系统命令后的输出作为函数返回。于是，我们可以用操作系统命令以及字符串处理命令awk，sed等等命令来生成一个变量，如：
+
+```
+contents := $(shell cat foo)
+files := $(shell echo *.c)
+```
+
+注意，这个函数会新生成一个Shell程序来执行命令，所以你要注意其运行性能，如果你的Makefile中有一些比较复杂的规则，并大量使用了这个函数，那么对于你的系统性能是有害的。特别是Makefile的隐晦的规则可能会让你的shell函数执行的次数比你想像的多得多。
