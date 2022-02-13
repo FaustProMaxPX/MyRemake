@@ -3,10 +3,7 @@
  */
 package graph;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * An implementation of Graph.
@@ -18,21 +15,48 @@ public class ConcreteVerticesGraph<L> implements Graph<L> {
     private final List<Vertex> vertices = new ArrayList<>();
     
     // Abstraction function:
-    //   TODO
+    //   vertices -> graph
     // Representation invariant:
-    //   TODO
+    //   all vertex in vertices are not null
+    //   weight is non-negative
     // Safety from rep exposure:
     //   TODO
     
-    // TODO constructor
-    // TODO checkRep
+    // constructor
+    public ConcreteVerticesGraph(){}
+    // checkRep
+    public void checkRep()
+    {
+        for (Vertex vertex : vertices)
+        {
+            assert vertex != null;
+            vertex.checkRep();
+        }
+    }
     
     @Override public boolean add(L vertex) {
-        throw new RuntimeException("not implemented");
+        for (Vertex vertex1 : vertices) {
+            if (vertex1.getData().equals(vertex))
+                return false;
+        }
+        vertices.add(new Vertex<L>(vertex));
+        checkRep();
+        return true;
     }
     
     @Override public int set(L source, L target, int weight) {
-        throw new RuntimeException("not implemented");
+        int w = 0;
+        for (Vertex vertex : vertices)
+        {
+            if (vertex.getData().equals(source))
+            {
+                if (weight == 0)
+                    w = vertex.unlink(target);
+                else
+                    w = vertex.link(target, weight);
+            }
+        }
+        return w;
     }
     
     @Override public boolean remove(L vertex) {
@@ -51,8 +75,16 @@ public class ConcreteVerticesGraph<L> implements Graph<L> {
         throw new RuntimeException("not implemented");
     }
     
-    // TODO toL()
-    
+    // toString()
+    @Override
+    public String toString()
+    {
+        StringBuilder builder = new StringBuilder();
+        for (Vertex vertex : vertices) {
+            builder.append(vertex.toString());
+        }
+        return builder.toString();
+    }
 }
 
 /**
@@ -63,23 +95,69 @@ public class ConcreteVerticesGraph<L> implements Graph<L> {
  * <p>PS2 instructions: the specification and implementation of this class is
  * up to you.
  */
-class Vertex {
+class Vertex<L> {
     
-    // TODO fields
-    
+    // field
+    // the data of this vertex
+    private L data;
+    // the edges that start from this vertex
+    private Map<L,Integer> edges;
     // Abstraction function:
-    //   TODO
+    //   Vertex(data, edges) -> created a vertex contain its data and out-degree
     // Representation invariant:
-    //   TODO
+    //   data != null && key of edges != null && value of edges >= 0
     // Safety from rep exposure:
-    //   TODO
+    //  only give public method to mutate edges.
+    //  the public get method offer an unmodifiable map to client
     
-    // TODO constructor
-    
-    // TODO checkRep
-    
-    // TODO methods
-    
-    // TODO toL()
+    // constructor
+    public Vertex(L data)
+    {
+        this.data = data;
+        this.edges = new HashMap<>();
+    }
+    // checkRep
+    void checkRep()
+    {
+        assert data != null;
+        assert !edges.containsKey(null);
+        for (L key : edges.keySet())
+            assert edges.get(key) >= 0;
+    }
+
+    // methods
+    public int link(L that, int weight)
+    {
+        Integer pre = edges.put(that, weight);
+        checkRep();
+        return pre == null ? 0 : pre;
+    }
+
+    public int unlink(L that)
+    {
+        Integer pre = edges.remove(that);
+        checkRep();
+        return pre == null ? 0 : pre;
+    }
+
+    public L getData()
+    {
+        return data;
+    }
+
+    public Map<L,Integer> getEdges()
+    {
+        return Map.copyOf(edges);
+    }
+
+    @Override
+    public String toString()
+    {
+        StringBuilder builder = new StringBuilder();
+        for (Map.Entry<L, Integer> entry : edges.entrySet()) {
+            builder.append(data).append(" ===> ").append(entry.getKey()).append("\n");
+        }
+        return builder.toString();
+    }
     
 }

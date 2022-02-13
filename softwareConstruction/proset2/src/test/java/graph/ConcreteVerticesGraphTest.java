@@ -3,6 +3,8 @@
  */
 package graph;
 
+import org.junit.Test;
+
 /**
  * Tests for ConcreteVerticesGraph.
  * 
@@ -11,13 +13,13 @@ package graph;
  * 
  * Tests against the Graph spec should be in GraphInstanceTest.
  */
-public class ConcreteVerticesGraphTest<L> extends GraphInstanceTest {
+public class ConcreteVerticesGraphTest extends GraphInstanceTest<String> {
     
     /*
      * Provide a ConcreteVerticesGraph for tests in GraphInstanceTest.
      */
-    @Override public Graph<L> emptyInstance() {
-        return new ConcreteVerticesGraph<>();
+    @Override public Graph<String> emptyInstance() {
+        return new ConcreteVerticesGraph();
     }
     
     /*
@@ -34,8 +36,21 @@ public class ConcreteVerticesGraphTest<L> extends GraphInstanceTest {
      */
     
     // Testing strategy for Vertex
-    //   TODO
-    
-    // TODO tests for operations of Vertex
-    
+    //
+    @Test
+    public void vertexTest()
+    {
+        Graph<String> lGraph = emptyInstance();
+        lGraph.add("1");
+        lGraph.add("2");
+        lGraph.set("1", "2", 1);
+        assert lGraph.toString().equals("1 ===> 2\n") ;
+        lGraph.add("3");
+        lGraph.set("2", "3", 2);
+        lGraph.set("1", "3", 3);
+        assert lGraph.toString().equals("1 ===> 2\n1 ===> 3\n2 ===> 3\n") : lGraph.toString();
+        int pre = lGraph.set("1", "2", 0);
+        assert pre == 1 : pre;
+        assert lGraph.toString().equals("1 ===> 3\n2 ===> 3\n") : lGraph.toString();
+    }
 }
