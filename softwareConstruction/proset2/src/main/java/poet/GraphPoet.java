@@ -3,8 +3,13 @@
  */
 package poet;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import graph.Graph;
 
@@ -55,11 +60,11 @@ public class GraphPoet {
     private final Graph<String> graph = Graph.empty();
     
     // Abstraction function:
-    //   TODO
+    //   vertices ,edges -> graph
     // Representation invariant:
-    //   TODO
+    //   vertices are not null, weights in edges are non-negative
     // Safety from rep exposure:
-    //   TODO
+    //   field is not exposed
     
     /**
      * Create a new poet with the graph from corpus (as described above).
@@ -68,10 +73,33 @@ public class GraphPoet {
      * @throws IOException if the corpus file cannot be found or read
      */
     public GraphPoet(File corpus) throws IOException {
-        throw new RuntimeException("not implemented");
+        BufferedReader reader = new BufferedReader(new FileReader(corpus));
+        String line = "";
+        while ((line = reader.readLine()) != null) {
+            String[] words = line.toLowerCase().split(" ");
+            for (int i = 0; i < words.length - 1; i++) {
+                if (words[i].equals("-")) continue;
+                int w = 1;
+                for (int j = i + 1; j < words.length; j++) {
+                    if (words[i].equals(words[j])) {
+                        w++;
+                        words[j] = "-";
+                    }
+                    else {
+                        graph.add(words[i]);
+                        graph.add(words[j]);
+                        graph.set(words[i], words[j], w);
+                        break;
+                    }
+                }
+            }
+        }
     }
     
-    // TODO checkRep
+    // checkRep
+    private void checkRep() {
+
+    }
     
     /**
      * Generate a poem.
@@ -80,8 +108,31 @@ public class GraphPoet {
      * @return poem (as described above)
      */
     public String poem(String input) {
-        throw new RuntimeException("not implemented");
+        String[] words = input.toLowerCase().split(" ",0);
+        Set<String> rep = graph.vertices();
+        StringBuffer buf = new StringBuffer();
+        for (int i = 0; i < words.length - 1; i++) {
+            Map<String, Integer> targets = graph.targets(words[i]);
+            Map<String, Integer> sources = graph.sources(words[i + 1]);
+            buf.append(" ").append(words[i]);
+            for (String key : targets.keySet())
+            {
+                if (sources.containsKey(key))
+                {
+                    int w1 = sources.get(key);
+                    int w2 = targets.get(key);
+                    for (int j = 1; j < w2; j++)
+                        buf.append(" ").append(words[i]);
+                    for (int j = 0; j < w1; j++)
+                        buf.append(" ").append(key);
+                }            
+            }
+        }
+        buf.append(" ").append(words[words.length - 1]);
+        return buf.toString();
     }
+
+    
     
     // TODO toString()
     
