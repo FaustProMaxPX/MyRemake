@@ -27,10 +27,10 @@ using std::search;
 // BEGIN STUDENT CODE HERE
 bool valid_wikilink(const string& link) {
     // replace these lines!
-    if (link.find("#") != string::npos || link.find(":") != string::npos) {
-        return false;
+    if (std::all_of(link.begin(), link.end(), [](char s) {return s != '#' && s != ':';})) {
+        return true;
     }
-    return true;
+    return false;
 }
 // END STUDENT CODE HERE
 ///////////////////////////////////////////////////////////////////////////////////////////////////
