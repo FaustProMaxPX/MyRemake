@@ -2,7 +2,6 @@
 #include <cstring>
 #include <sstream>
 
-<<<<<<< HEAD
 using std::cin;
 using std::cout;
 using std::endl;
@@ -12,12 +11,6 @@ int stringToInteger(const string& s);
 void stringToIntegerTest();
 string IntegerToString(int myInt);
 int getInteger();
-=======
-using namespace std;
-
-int stringToInteger(const string& s);
-void stringToIntegerTest();
->>>>>>> 58e5b02bcd7dc0f7c244bb4771b160b72a5a9a8f
 
 int main()
 {
@@ -25,7 +18,6 @@ int main()
     return 0;
 }
 
-<<<<<<< HEAD
 string IntegerToString(int myInt) {
     /*
      * We'll specifically use an ostringstream, which is just a
@@ -86,12 +78,6 @@ int stringToInteger(const string& s)
     int num = 0;
     istringstream iss(s);
     
-=======
-int stringToInteger(const string& s)
-{
-    int num = 0;
-    istringstream iss(s);
->>>>>>> 58e5b02bcd7dc0f7c244bb4771b160b72a5a9a8f
     iss >> num;
     if (iss.fail()) throw new std::domain_error("The input is invalid");
     char remain;
