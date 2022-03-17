@@ -111,6 +111,24 @@ tips:C++中的this是指向当前对象的一个指针，不是引用。
 
 
 
+#### 构造函数
+
+1. default construction: the construction takes no parameters
+2. copy construction: use an object to construct another construction as the copy
+
+```c++
+vector<int> vec{} // default construction
+vector<int> vec{1,2,3} // regular construction
+```
+
+
+
+copy assignment: *删除旧的对象*，将其变量名用于另一个变量的拷贝。首先确保`另一个变量`不是自己本身。
+
+tips: 拷贝构造器，拷贝赋值，析构函数要么全用默认，要么全部自定义。
+
+
+
 #### 折构函数
 
 删除单个对象关键字：delete
@@ -120,6 +138,22 @@ tips:C++中的this是指向当前对象的一个指针，不是引用。
 折构函数声明：ClassName::~ClassName()
 
 折构函数不必显示调用，在离开作用域时会被自动调用。
+
+
+
+#### 友元函数
+
+允许类外的对象访问类内的私有对象
+
+
+
+初始化列表
+
+```c++
+private:
+	int logicalSize;
+StringVector::StringVector() : logicalSize(0) {}
+```
 
 
 
@@ -147,3 +181,41 @@ BidirectionalIterator stable_partition (BidirectionalIterator first,
 
 tips：如果调用非STL内置的方法对容器进行操作，该方法只能操作容器内容，但容器大小不会动态变化。
 
+
+
+### Const
+
+ 被const修饰的变量不可被修改，包括该变量中的内容。同时若一个函数的参数为const，则在该函数调用的所有函数中都必须满足const，(即不能将一个const参数传递给非const参数)。
+
+
+
+>  const on objects
+
+只允许调用const function 并且将所有的public成员当作被const修饰
+
+
+
+> const on functions
+
+保证这个函数不会调用除const functions之外的函数，并且不允许修改任何非静态，非可变的成员
+
+```c++
+void fun() const;
+```
+
+
+
+const pointer
+
+```c++
+// read from right to left
+// const iterator 类似于常量指针
+int * const p; // constant pointer to a non-const int
+
+const int * p; // non-const pointer to a const int
+// const_iterator 类似于指针常量
+```
+
+
+
+tips：一个被const修饰的对象同样不能调用非const方法，因此建议在实现一个类的时候，同时实现const和非const两个版本。
