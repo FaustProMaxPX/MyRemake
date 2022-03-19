@@ -1,7 +1,7 @@
 package list;
 
 /** The double linked list */
-public class LinkList <T> {
+public class LinkList <T> implements List<T> {
 
     /** inner class of node in the list */
     class Node {
@@ -37,10 +37,12 @@ public class LinkList <T> {
         size = 0;
     }
 
+    @Override
     public void addFirst(T data) {
         addNode(head, data);
     }
 
+    @Override
     public void addLast(T data) {
         // Node node = new Node(data);
         Node tail = head.prev;
@@ -63,6 +65,7 @@ public class LinkList <T> {
         size++;
     }
 
+    @Override
     public int size() {
         return size;
     }
@@ -72,7 +75,8 @@ public class LinkList <T> {
      * @param data The new node's data, not null
      * @param index The location of the node needed to be relinked, index >= 0 && index <= size
      */
-    public void addNodeAt(T data, int index) {
+    @Override
+    public void add(T data, int index) {
         if (index < 0 || index > size)
             throw new IndexOutOfBoundsException();
         Node t = head;        
@@ -88,7 +92,7 @@ public class LinkList <T> {
      * @param index the location of the node
      * @return the data of that node
      */
-    public T indexAt(int index) {
+    public T get(int index) {
         if (index < 0 || index >= size)
             throw new IndexOutOfBoundsException();
         Node t = head;
@@ -99,14 +103,26 @@ public class LinkList <T> {
         return t.data;
     }
 
+    @Override
+    public void set(T data, int index) {
+        if (index < 0 || index >= size) 
+            throw new IndexOutOfBoundsException();
+        Node t = head;
+        while (index >= 0) {
+            index--;
+            t = t.next;
+        } 
+        t.data = data;
+    }
+
     public static void main(String[] args) {
         
         LinkList<Integer> list = new LinkList<>();
         list.addFirst(1);
         list.addLast(2);
-        list.addNodeAt(10, 2);
-        list.addNodeAt(20, 2);
-        for (int i = 0; i < list.size(); i++)
-            System.out.printf("%d" ,list.indexAt(i));
+        // list.addNodeAt(10, 2);
+        // list.addNodeAt(20, 2);
+        // for (int i = 0; i < list.size(); i++)
+            // System.out.printf("%d" ,list.indexAt(i));
     }
 }
