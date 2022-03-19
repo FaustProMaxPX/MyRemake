@@ -219,3 +219,14 @@ const int * p; // non-const pointer to a const int
 
 
 tips：一个被const修饰的对象同样不能调用非const方法，因此建议在实现一个类的时候，同时实现const和非const两个版本。
+
+
+
+## lvalue and rvalue
+
+lvalue:被变量名(地址)标识的表达式，可以用`&`取到地址
+
+rvalue:临时变量，无法用&取到地址， 无法被保存。
+
+右值只出现在寄存器中，而在堆栈中没有空间。
+
