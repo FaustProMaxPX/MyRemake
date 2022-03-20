@@ -157,7 +157,31 @@ StringVector::StringVector() : logicalSize(0) {}
 
 
 
-### Lambada
+### 继承
+
+语法
+
+```C++
+class A {
+    public:
+    	virtual void make() = 0; // The class implementing A must define this method
+};
+
+// 此处的public代表B中所有由A继承来的方法与属性的访问限制照旧
+class B : public A { // B implement A
+    ...
+}
+```
+
+
+
+ 对于一个接口，其只能包含纯虚函数。
+
+对于非虚成员，所有的在父类中与子类成员同名的成员都会被隐藏。
+
+
+
+## Lambada
 
 语法：
 
@@ -183,7 +207,7 @@ tips：如果调用非STL内置的方法对容器进行操作，该方法只能�
 
 
 
-### Const
+## Const
 
  被const修饰的变量不可被修改，包括该变量中的内容。同时若一个函数的参数为const，则在该函数调用的所有函数中都必须满足const，(即不能将一个const参数传递给非const参数)。
 
@@ -229,4 +253,17 @@ lvalue:被变量名(地址)标识的表达式，可以用`&`取到地址
 rvalue:临时变量，无法用&取到地址， 无法被保存。
 
 右值只出现在寄存器中，而在堆栈中没有空间。
+
+
+
+`&`为左值引用，只能绑定左值
+
+`&&`为右值引用，只能绑定右值
+
+tips:
+
+- 被const修饰的左值引用可以绑定右值。 re：非const修饰的左值引用可以修改指向对象的内容，但右值明显是不可以被修改的。
+- 右值引用绑定右值，但右值引用本身是个左值。
+
+
 
