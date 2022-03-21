@@ -125,7 +125,34 @@ vector<int> vec{1,2,3} // regular construction
 
 copy assignment: *删除旧的对象*，将其变量名用于另一个变量的拷贝。首先确保`另一个变量`不是自己本身。
 
-tips: 拷贝构造器，拷贝赋值，析构函数要么全用默认，要么全部自定义。
+tips: 
+
+- 拷贝构造器，拷贝赋值，析构函数要么全用默认，要么全部自定义。
+
+- 应显示指明子类的构造函数，默认会使用基类的构造函数。
+
+  ```c++
+  class Drink {
+      private:
+      	std::string _flavor
+      
+  	public:
+  		Drink() = default; // 显式指明默认构造器
+      	Drink(std::string flavor) : _flavor(flavor) {}
+  }
+  
+  class Tea : public Drink {
+      public:
+      	Tea() = default;
+  	    Tea(string flavor) : Drink(flavor) {} // invoke base constructor
+  }
+  ```
+
+  
+
+
+
+
 
 
 
@@ -138,6 +165,8 @@ tips: 拷贝构造器，拷贝赋值，析构函数要么全用默认，要么�
 折构函数声明：ClassName::~ClassName()
 
 折构函数不必显示调用，在离开作用域时会被自动调用。
+
+**若一个类要被继承，则必须将其析构函数设置为虚函数**
 
 
 
@@ -175,9 +204,38 @@ class B : public A { // B implement A
 
 
 
- 对于一个接口，其只能包含纯虚函数。
+对于一个接口，其只能包含纯虚函数。
 
 对于非虚成员，所有的在父类中与子类成员同名的成员都会被隐藏。
+
+只有声明为虚函数的方法会被动态绑定到子类上，其余方法一概到编译类型中去寻找。
+
+
+
+> concept (only C++20)
+
+concept是一个在编译期间进行判定的断言，属于接口的一类
+
+对模板类的类型参数进行一定的约束。
+
+```c++
+template <typename It, typename Type>
+requires Input_Iterator<It> && Iterator_of<It> 
+	&& Equality_comparable<Value_type<It>, Type>
+int count(It it, Type val){
+    ...
+}
+
+template <typename It, typename Type>
+concept DerivedFrom = Input_Iterator<It> && Iterator_of<It> 
+	&& Equality_comparable<Value_type<It>, Type>
+
+template <class D, class B>
+int count(It it, Type val) requires DerivedFrom<D, B>
+{
+    
+}
+```
 
 
 
