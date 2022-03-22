@@ -14,7 +14,7 @@ public class LinkedListDeque <T> {
     }
 
     private Node head;
-    private Node tail;
+    // private Node tail;
     private int size;
 
     public LinkedListDeque() {
@@ -22,7 +22,7 @@ public class LinkedListDeque <T> {
         head.data = null;
         head.next = head;
         head.prev = head;
-        tail = head;
+        // tail = head;
         size = 0;
     }
 
@@ -36,24 +36,22 @@ public class LinkedListDeque <T> {
 
     public void addFirst(T data) {
         add(data, head);
-        while (tail.next != head) {
-            tail = tail.next;
-        }
+        
     }
 
     public T removeFirst() {
         if (head.next == head) {
-            throw new RuntimeException("The list has no member");
+            return null;
         }
         return remove(head);
     }
 
     public T removeLast() {
         if (head.next == head) {
-            throw new RuntimeException("The list has no member");
+            return null;
         }
-        tail = tail.prev;
-        return remove(tail);
+        // tail = tail.prev;
+        return remove(head.prev.prev);
     }
 
     private T remove(Node before) {
@@ -68,8 +66,8 @@ public class LinkedListDeque <T> {
     }
 
     public void addLast(T data) {
-        add(data, tail);
-        tail = tail.next;
+        add(data, head.prev);
+        // tail = tail.next;
     }
 
     public boolean isEmpty() {
@@ -90,7 +88,7 @@ public class LinkedListDeque <T> {
 
     public T get(int index) {
         if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException();
+            return null;
         }
         
         Node t = head.next;
@@ -99,5 +97,19 @@ public class LinkedListDeque <T> {
             t = t.next;
         }
         return t.data;
+    }
+
+    private T getRecursive(Node node, int index) {
+        if (index == 0) {
+            return node.data;
+        }
+        return getRecursive(node.next, index - 1);
+    }
+
+    public T getRecursive(int index) {
+        if (index < 0 || index >= size) {
+            return null;
+        }
+        return getRecursive(head.next, index);
     }
 }

@@ -24,28 +24,34 @@ public class ArrayDeque <T> {
     }
 
     public T removeFirst() {
-        if (isEmpty())
-            throw new IndexOutOfBoundsException();
+        if (isEmpty()) {
+            return null;
+        }
+            // throw new IndexOutOfBoundsException();
         checkCongestion();
-        T data = datas[first++];
+        T data = datas[++first];
         datas[first] = null;
         return data;
     }
 
     public T removeLast() {
-        if (isEmpty())
-            throw new IndexOutOfBoundsException();
+        if (isEmpty()) {
+            return null;
+        }
+            // throw new IndexOutOfBoundsException();
         checkCongestion();
-        T data = datas[tail--];
+        T data = datas[--tail];
         datas[tail] = null;
         return data;
     }
 
     private void checkCongestion() {
-        if (first == -1 || tail == datas.length)
+        if (first == -1 || tail == datas.length) {
             resize(true);
-        else if (datas.length > ssth_size && ((double) size() / datas.length) - rate < 0.01)
+        }
+        else if (datas.length > ssth_size && ((double) size() / datas.length) - rate < 0.01) {
             resize(false);
+        }
         
     }
 
@@ -86,10 +92,11 @@ public class ArrayDeque <T> {
     */
 
     public T get(int index) {
-        if (index <= first || index >= tail) {
-            throw new IndexOutOfBoundsException();
+        if (index < 0 || index >= size()) {
+            return null;
+            // throw new IndexOutOfBoundsException();
         }
-        return datas[index];
+        return datas[first + index + 1];
     }
 
     public void printDeque() {

@@ -76,9 +76,9 @@ public class LinkedListDequeTest {
 		// should not be empty 
 		passed = checkEmpty(false, lld1.isEmpty()) && passed;
 
-		lld1.addLast(20);
-		lld1.addFirst(30);
-		lld1.removeLast();
+		// lld1.addLast(20);
+		// lld1.addFirst(30);
+		// lld1.removeLast();
 
 		lld1.removeFirst();
 		// should be empty 
@@ -86,6 +86,20 @@ public class LinkedListDequeTest {
 
 		printTestStatus(passed);
 		
+	}
+
+	public static void getRecursiveTest() {
+		LinkedListDeque<String> deque = new LinkedListDeque<>();
+		for (int i = 0; i < 100; i++) {
+			if (i % 3 == 0)
+				deque.addFirst(i + "");
+			else 
+				deque.addLast(i + "");
+		}
+        for (int i = 0; i < 100; i++) {
+            System.out.print(deque.getRecursive(i) + " ");
+        }
+        System.out.println("\n" + deque.getRecursive(101));
 	}
 
 	public static void getTest() {
@@ -99,10 +113,21 @@ public class LinkedListDequeTest {
 		assert listDeque.get(2) == 200;
 	}
 
+    public static void removeTest() {
+
+        LinkedListDeque<Integer> deque = new LinkedListDeque<>();
+        deque.addFirst(1);
+        deque.removeFirst();
+         deque.addLast(3);
+        System.out.println(deque.removeFirst());;
+    }
+
 	public static void main(String[] args) {
 		System.out.println("Running tests.\n");
-		// addIsEmptySizeTest();
+		addIsEmptySizeTest();
 		// addRemoveTest();
-		getTest();
+		// getTest();
+        // getRecursiveTest();
+        // removeTest();
 	}
 } 
