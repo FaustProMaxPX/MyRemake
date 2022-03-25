@@ -123,6 +123,10 @@ vector<int> vec{1,2,3} // regular construction
 
 
 
+做深拷贝时要注意，若拷贝对象中存储的是指针类型，则应深拷贝指针指向的对象而非指针本身。直接调用STL库中的拷贝构造只会深拷贝存储的对象。
+
+
+
 copy assignment: *删除旧的对象*，将其变量名用于另一个变量的拷贝。首先确保`另一个变量`不是自己本身。
 
 tips: 
@@ -150,9 +154,30 @@ tips:
 
   
 
+若构造器使用explicit修饰，则该构造器不能对参数作隐式的类型转换，也不能用拷贝初始化。
+
+```c++
+explicit HashMap(size_t bucket_count, const H& hash = H());
+```
+
+对于声明了noexcept的函数，编译器会对其进行优化，但此类函数一旦抛出异常，就会终止程序。
+
+```c++
+void func() noexcept
+```
 
 
 
+Initializer_list constructor
+
+```c++
+myvector(const myvector<T>& other) : t_size(other.t_size), length(other.length) {
+        datas = new T[length];
+        for (int i = 0; i < t_size; i++) {
+            datas[i] = other.datas[i];
+        }
+    }
+```
 
 
 
@@ -324,4 +349,75 @@ tips:
 - 右值引用绑定右值，但右值引用本身是个左值。
 
 
+
+
+
+## RAII
+
+使用new申请的存储空间位于堆中，若在指向它的指针消失前，其存储空间没有被释放，则其永远在堆中占有那部分空间，但无法被访问到，造成内存泄漏。
+
+
+
+在程序中需要被手动释放的资源
+
+|             | Acquire   | Release |
+| ----------- | --------- | ------- |
+| Heap memory | new       | delete  |
+| Files       | open      | close   |
+| Locks       | try_clock | unlock  |
+| Sockets     | socket    | close   |
+
+
+
+tips: 我们无法保证当异常抛出时，delete会被正常执行。因此需要妥善处理异常，避免内存泄漏。
+
+
+
+> RAII
+
+在构造器中获取所有资源
+
+在析构函数中释放所有资源
+
+```c++
+// you don't need to invoke close
+ifstream input("xxx.txt");
+
+// you must invoke close
+ifstream input();
+input.open("xxx.txt");
+input.close();
+```
+
+
+
+## SmartPointer
+
+> std::unique_pointer
+
+唯一指向某一块内存资源，并在指针超出作用域时删除对象。
+
+因此该指针不允许拷贝。
+
+
+
+> std::shared_pointer
+
+内存资源可以被多个指针指向，在最后一个指向的指针消失时，摧毁对象。
+
+
+
+相关构造器 (用这个)
+
+make_XXX<class>(args)
+
+
+
+## 多线程
+
+当要进行多线程时，使用原子数据类型
+
+相关库
+
+![image-20220322230548330](C:\Users\ABD\AppData\Roaming\Typora\typora-user-images\image-20220322230548330.png)
 
