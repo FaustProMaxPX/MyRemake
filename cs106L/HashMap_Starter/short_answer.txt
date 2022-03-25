@@ -1,0 +1,20 @@
+Assignment 3: STL HashMap (short answer questions)
+Names:
+
+1. at() just get the mapped value, the map needs this function no matter it's const or not.
+    But operator[] will also insert a {key, value} to map if the key doesn't exist, 
+    It's obviously that const map doesn't need this function, so we can just ignore it.
+
+2. map.find() is faster, it uses hash function. std::find just iterator over the container.
+
+3. It's RAII. All the map's resources would be released in its deconstructor. 
+
+4. move pointer to next element, if next is null, find next bucket that is not null 
+    and point to its first element. finally, return current object.
+    check : if current bucket has iterated completely, if the whole map has been iterated.
+
+5. For HashMapIterator, we can directly assign value to its field, so the default smf is enough. But for HashMap
+    We need to consider about allocating memeory, and manage the pointer, so we implement it by ourselves.
+
+6. Tough the parameter itself is an r-value, but when it is passed to a function, formal parameter combine
+    with it and the formal parameter is an l-value. So, we still need to use std::move.
