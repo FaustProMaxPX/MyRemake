@@ -64,3 +64,115 @@ Java根据动态数据类型调用方法，若子类中覆写了一个方法，�
 
 封装被破坏的直接体现：模组中的方法不再以整体的形式被调用
 
+
+
+## 排序
+
+
+
+> 合并排序 (+ 选择排序)
+
+合并排序在处理有序数组时仅有O(N)的复杂度，因此可以选择将无序数组切分成若干部分，对其分别调用选择排序，再进行合并，实现排序加速。
+
+
+
+但若将数组切分到只剩单个元素的小块，则可直接用合并排序实现一切，复杂度为O(NlogN)，代价是内存占用较大。
+
+```java
+public class Sort {
+
+    /**
+     * merge two sorted array to a sorted array
+     * @param <T> type of data
+     * @param datas1 a sorted array and all of its elements are not null
+     * @param datas2 a sorted array and all of its elements are not null
+     * @param c The comparator of type T
+     * @return a sorted array containing all elements in datas1 and datas2
+     */
+    public static <T> List<T> merge(List<T> datas1, List<T> datas2, Comparator<T> cc) {
+        int i, j;
+        i = j = 0;
+        // ret = (T[])(new Object[datas1.length + datas2.length]);
+        List<T> ret = new ArrayList<>();
+        int idx = 0;
+        while (i < datas1.size() && j < datas2.size()) {
+            int cmp = cc.compare(datas1.get(i), datas2.get(j));
+            if (cmp <= 0) {
+                ret.add(datas1.get(i));
+                ++i;
+            }
+            else {
+                ret.add(datas2.get(j));
+                ++j;
+            }
+            idx++;
+        }
+        if (i != datas1.size()) {
+            ret.addAll(datas1.subList(i, datas1.size()));
+        }
+        else if (j != datas2.size()) {
+            ret.addAll(datas2.subList(j, datas2.size()));
+        }
+        return ret;
+    }
+
+    public static <T> void insertSort(List<T> datas, Comparator<T> cc) {
+
+        for (int i = 1; i < datas.size(); i++) {
+            T elem = datas.get(i);
+            int j;
+            for (j = i; j > 0 && cc.compare(datas.get(j - 1), elem) > 0; j--) {
+                datas.set(j, datas.get(j - 1));
+            }
+            datas.set(j, elem);
+        }
+    }
+
+    public static <T> List<T> mergeSort(List<T> datas, Comparator<T> cc) {
+        if (datas.size() < 10) {
+            insertSort(datas, cc);
+            return datas;
+        }
+        else {
+            int mid = datas.size() / 2;
+            List<T> sort1 = mergeSort(datas.subList(0, mid), cc);
+            List<T> sort2 = mergeSort(datas.subList(mid, datas.size()), cc);
+            List<T> ret = merge(sort1, sort2, cc);
+            return ret;
+        }
+    }
+}
+```
+
+
+
+## 并查集
+
+不实质性将两个结点连接，而是将其存储在同一个集合中，表明他们之间有链接。
+
+这样在查询两个结点之间是否连接时只需要看他们是否在同一集合中。
+
+re:我们不需要像图那样直到具体的连接情况，因此可以用逻辑上的连接代替。
+
+
+
+> implement
+
+实现方式1：哈希表（通用）
+
+
+
+对于整形
+
+实现方式2：创建一个大小为N的数组，数组中存储的是其对应下标数组所属的集合的代表数字。
+
+快速连接的方法：直接修改集合的代表元素指向的父级结点的值。但此时父级结点的计算仍可能是一个昂贵的操作。最坏情况会退化到O(N)。
+
+因此我们选择将一个结合中所有的元素都指向结合代表元素，这样查询当前集合的父节点的时间就被大大压缩。
+
+此时需要考虑在合并时应将小的集合并到大的集合来减少树的深度。
+
+-> 使用一个数组来追踪集合大小，确保每一次都是小的往大的合，这样树的深度永远被控制在logN。
+
+路径压缩：在执行isConnect时，将单个集合中的所有结点指向其最高父结点。
+
