@@ -176,3 +176,217 @@ re:我们不需要像图那样直到具体的连接情况，因此可以用逻�
 
 路径压缩：在执行isConnect时，将单个集合中的所有结点指向其最高父结点。
 
+```java
+public class Union {
+    
+    Integer[] parent;
+    Integer[] size;
+
+    /*
+        AF(n) : a union containing n elements, 
+        their parent nodes are stored in {parent}
+        every set's size is stored in size
+
+        Rep invarient:
+        parent != null, elements in parent are greater than or equal to 0, less than n
+        size != null, elements in size are not less than 1
+    */
+
+    public Union(int n) {
+        parent = new Integer[n];
+        size = new Integer[n];
+        for (int i = 0; i < n; i++) {
+            parent[i] = i;
+            size[i] = 1;
+        }
+    }
+
+    /**
+     * check if p and q are belong to the same set
+     * compress the path at the same time
+     * @param p node p
+     * @param q node q
+     * @return if they are belong to the same set
+     */
+    public boolean isConnect(int p, int q) {
+        int i = find(p);
+        int j = find(q);
+        return i == j;
+    }
+
+    /**
+     * find parent of p
+     * @param p node p
+     * @return its parent
+     */
+    public int find(int p) {
+        if (p == parent[p]) {
+            return p;
+        }
+        return parent[p] = find(parent[p]);
+    }
+
+    /**
+     * connect set containing p and set containing q together
+     * @param p node p
+     * @param q node q
+     */
+    public void connect(int p, int q) {
+
+        int i = parent[p];
+        int j = parent[q];
+        if (i == j)
+            return;
+        if (size[i] >= size[j]) {
+            parent[j] = i;
+            size[i] += size[j];
+        }
+        else {
+            parent[i] = j;
+            size[j] += size[i];
+        }
+    }
+}
+```
+
+
+
+## 二叉搜索树
+
+对于一张有序的顺序表，可以通过不断的将其二分来进行压缩，BST就是二分查找的显式表现。
+
+根节点的左子树这种的元素均小于根节点的元素，右子树的均大于根节点元素。
+
+
+
+> 删除操作
+
+对于叶子节点，直接将其删除即可。
+
+对于有单个孩子的结点，用其孩子结点顶替当前结点。
+
+对于有两个孩子的结点，找到其左子树中最大的结点或右子树中最小的结点(必然是叶子结点或只有一个孩子的结点)来顶替它，然后删除用于顶替的结点。
+
+tip：但是删除操作做的越多，树的高度就会不断增高，因为每次删除都相当于让树的某一端的结点数量减少，最后失去平衡。
+
+
+
+```java
+
+public class BinSearchTree {
+
+    private Node root;
+    private int size;
+    
+    public Integer get(Integer key) {
+        return getHelper(key, root);
+    }
+
+    private Integer getHelper(Integer key, Node troot) {
+
+        if (troot == null) {
+            return null;
+        }
+        else if (troot.elem.key == key) {
+            return troot.elem.value;
+        }
+        else if (troot.elem.key < key) {
+            return getHelper(key, troot.right);
+        }
+        return getHelper(key, troot.left);
+        
+    }
+
+    public Node insert(Integer key, Integer value) {
+        root = insertHelper(key, value, root);
+        return root;
+    }
+
+    private Node insertHelper(Integer key, Integer value, Node troot) {
+        if (troot == null) {
+            size++;
+            return new Node(new Pair(key, value), null, null);
+        }
+        else {
+            if (troot.elem.key > key) {
+                troot.left = insertHelper(key, value, troot.left);
+            }
+            else if (troot.elem.key < key) {
+                troot.right = insertHelper(key, value, troot.right);
+            }
+            return troot;
+        }
+    }
+
+    public boolean containsKey(Integer key) {
+        return getHelper(key, root) != null;
+    }
+
+    public void delete(Integer key) {
+        deleteHelper(key, root);
+    }
+
+    private Node deleteHelper(Integer key, Node troot) {
+        
+        if (troot == null) {
+            return null;
+        }
+        else if (troot.elem.key < key) {
+            troot.right = deleteHelper(key, troot.right);
+        }
+        else if (troot.elem.key > key) {
+            troot.left = deleteHelper(key, troot.left);
+        }
+        else {
+            if (troot.left != null && troot.right != null) {
+                Node tmp = findMax(troot.left);
+                troot.elem = tmp.elem;
+                troot.left = deleteHelper(troot.elem.key, troot.left);
+            }
+            else {
+                if (troot.left == null) {
+                    troot = troot.right;
+                }
+                else if (troot.right == null) {
+                    troot = troot.left;
+                }
+            }
+            size--;
+        }
+        return troot;
+    }
+
+    private Node findMax(Node troot) {
+        if (troot == null) {
+            return null;
+        }
+        while (troot.right != null) {
+            troot = troot.right;
+        }
+        return troot;
+    }
+
+    private class Node {
+        private Pair elem;
+        private Node left;
+        private Node right;
+        public Node(Pair elem, BinSearchTree.Node left, BinSearchTree.Node right) {
+            this.elem = elem;
+            this.left = left;
+            this.right = right;
+        }       
+    }
+
+    private class Pair {
+
+        private Integer key;
+        private Integer value;
+        public Pair(Integer key, Integer value) {
+            this.key = key;
+            this.value = value;
+        }
+        
+    }
+}
+```
+
