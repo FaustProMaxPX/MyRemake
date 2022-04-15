@@ -525,5 +525,22 @@ public class BinSearchTree {
 
 将图的信息传递给专门进行处理的客户类，让客户直接从对应的类中获取需要的处理后的信息。
 
-![image-20220410163728857](C:\Users\ABD\AppData\Roaming\Typora\typora-user-images\image-20220410163728857.png)
+![image-20220415191751741](C:\Users\Faust\AppData\Roaming\Typora\typora-user-images\image-20220415191751741.png)
 
+
+
+> Topological Sort
+
+拓扑排序是一个**有向无环图**的所有顶点的线性序列，且具有如下特质：
+
+1. 每一个顶点出现且只出现一次
+2. 若存在一条从A到B的路径，则在序列中A出现在B之前。
+
+实现：
+
+1. 维护一个存储入度为0的节点的数组
+2. 每次从该数组中取出一个节点并删除该顶点及所有相关的有向边。
+3. 更新图中其余节点的入度。
+4. 重复2，3直到图为空。
+
+应用：拓扑排序常用来排序具有依赖关系的任务。
