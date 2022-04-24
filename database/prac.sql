@@ -409,3 +409,144 @@ WHERE NOT EXISTS (
         WHERE sc.sNo = s.sNo
     )
 );
+
+
+-- 1、创建2张表，信息如下：
+--       图书（编号，书名，作者，ISBN，出版社编号，版本，出版日期）。主码为编号，ISBN唯一。出版社编号为外码，参照出版社编号。
+--       出版社（编号，名称，地址，电话）。主码为编号。
+-- 要求：(1)创建表的同时创建约束；
+--       (2)删除所创建的表;
+--       (3)重新创建表，在表创建之后增加约束。
+CREATE TABLE `publish` (
+    `pid` INT PRIMARY KEY,
+    `name` VARCHAR(255) NOT NULL,
+    `address` VARCHAR(255) NOT NULL,
+    `tel` VARCHAR(15) NOT NULL
+)CHARSET=utf8 ENGINE=Innodb;
+
+CREATE Table `books` (
+    `bid` INT PRIMARY KEY,
+    `name` VARCHAR(255) NOT NULL,
+    `author` VARCHAR(255) NOT NULL,
+    `ISBN` VARCHAR(30) UNIQUE,
+    `pid` INT NOT NULL,
+    `version` VARCHAR(10) NOT NULL,
+    `date` DATETIME,
+    FOREIGN KEY (`pid`) REFERENCES `publish`(`pid`)
+);
+
+DROP Table `books`;
+DROP Table `publish`;
+
+CREATE TABLE `publish` (
+    `pid` INT,
+    `name` VARCHAR(255) NOT NULL,
+    `address` VARCHAR(255) NOT NULL,
+    `tel` VARCHAR(15) NOT NULL
+)CHARSET=utf8 ENGINE=Innodb;
+
+CREATE Table `books` (
+    `bid` INT,
+    `name` VARCHAR(255) NOT NULL,
+    `author` VARCHAR(255) NOT NULL,
+    `ISBN` VARCHAR(30) UNIQUE,
+    `pid` INT NOT NULL,
+    `version` VARCHAR(10) NOT NULL,
+    `date` DATETIME
+);
+
+ALTER Table `publish` 
+ADD CONSTRAINT `pid` 
+PRIMARY KEY(`pid`);
+ALTER Table `books` 
+ADD CONSTRAINT `bid` 
+PRIMARY KEY(`bid`);
+ALTER Table `books`
+ADD CONSTRAINT `pid`
+FOREIGN KEY(`pid`) REFERENCES `publish`(`pid`);
+
+-- 2、
+-- (1)分别向两张表中各插入2行数据。
+-- (2)将其中一个出版社地址变更一下。
+-- (3)删除所插入数据。
+
+INSERT INTO `publish` 
+(`pid`, `name`, `address`, `tel`) 
+VALUES (
+    0, 'p1', 'a1', 't1'
+);
+
+INSERT INTO `publish` 
+(`pid`, `name`, `address`, `tel`) 
+VALUES (
+    1, 'p2', 'a2', 't2'
+);
+
+INSERT INTO 
+books (`bid`,`name`,`author`,`pid`,`version`,`ISBN`,`date`) 
+VALUES (3,'n1','au1',1,'00','12', NOW());
+
+INSERT INTO 
+books (`bid`,`name`,`author`,`pid`,`version`,`ISBN`,`date`) 
+VALUES (4,'n1','au1',0,'00','123', NOW());
+
+UPDATE
+`publish`
+SET
+`address`='ad4'
+WHERE `pid` = 0; 
+
+DELETE FROM `books`;
+DELETE FROM `publish`;
+
+-- 3、
+-- (1)创建一个软件学院所有选修了“离散数学”课程的学生视图，并通过视图插入一行数据。
+-- (2)创建一个各门课程平均分视图。
+-- 4、创建一张学生平均成绩表s_score(sNo,sName,avgscore),并通过子查询插入所有学生数据。
+
+CREATE VIEW v1
+AS (
+    SELECT s.sNo AS '学号', s.sName AS '姓名' 
+    FROM student s
+    WHERE s.sNo IN (
+        SELECT sc.sNo
+        FROM sc, course c
+        WHERE c.cName = '离散数学' AND c.cNo = sc.cNo
+    )
+    AND s.dNo = (
+        SELECT d.dNo
+        FROM department d
+        WHERE d.dName = '软件学院'
+    )
+);
+
+INSERT INTO v1 VALUES (0, 'test');
+
+CREATE VIEW avg_score
+AS (
+    SELECT c.cName AS '课程名', AVG(sc.score) AS '平均分'
+    FROM course c
+    LEFT OUTER JOIN sc
+    ON c.cNo = sc.cNo
+    GROUP BY c.cNo
+);
+
+
+CREATE VIEW s_score
+AS (
+    SELECT s.sNo AS 'sNo', s.sName AS 'sName', AVG(sc.score) AS 'avg_score'
+    FROM student s
+    LEFT JOIN sc
+    ON s.sNo = sc.sNo
+    GROUP BY s.sNo
+);
+
+
+START TRANSACTION;
+INSERT INTO `publish` VALUES (0, 't1', 'ad1', 't1');
+
+ROLLBACK;
+COMMIT;
+
+
+
