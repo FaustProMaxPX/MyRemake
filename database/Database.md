@@ -799,3 +799,45 @@ PS：若S为驱动表，开销为500 + 40000 * 1000，相对减少500次IO
 一次IO从驱动表中获取几页数据，其余操作同上。
 
 开销可降低为 1000 + (1000 / N) * 500 N为一次性获取的页数，一般为缓冲区数-2
+
+
+
+### Index Nested-Loop Join
+
+驱动表在拿到数据后，直接根据关联字段的索引进行查找。和上述的方法相比，该方法每从驱动表取出一条记录，都只要去查询被驱动表的索引，查询次数为索引的高度。
+
+开销为：驱动表页数 + 驱动表记录数 * 索引树高度
+
+
+
+### Sort-Merge Join
+
+条件：有相同字段(自然连接)或指定的判定条件
+
+步骤：
+
+1. 将驱动表和被驱动表按照join key排序
+2. 归并扫描排序后的表并提取出满足条件的元组
+
+```C
+do {
+  if (!mark) {
+    while (r < s) { advance r }
+    while (r > s) { advance s }
+    // mark start of “block” of S
+    mark = s
+  }
+  if (r == s) {
+    result = <r, s>
+    advance s
+    return result
+  }
+  else {
+    reset s to mark
+    advance r
+    mark = NULL
+  }
+}
+```
+
+开销：R和S排序的IO开销，加上归并时，读取一遍R和S的开销
