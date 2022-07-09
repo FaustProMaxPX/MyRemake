@@ -589,7 +589,7 @@ Pass 1：
 
 1. Divide
 
-   使用哈希函数hp将记录流传递到指定的磁盘分区
+   使用哈希函数hp将记录流传递到指定的磁盘分区，先将特征相近的数据分配到同一分区，将庞大的数据拆分成可被内存处理的数据块。（分治法中的划分子问题）
 
    满足匹配条件的都处在同一分区，确保具有同样特征的值不会在内存中被不同的哈希表计算（去除冗余）。
 
@@ -600,10 +600,12 @@ Pass 1：
    利用哈希函数hr，将分区读取到RAM的hash表中
 
    然后读取桶中的数据，并将它们回写到磁盘中
+   
+   将已经被分区的数据块进行哈希映射。（分治法中的解决子问题）
 
 ![image-20220611230641780](D:\develop\git\MyRemake\database\img\image-20220611230641780.png)
 
-若划分之后的数据块还是很大，则进行递归划分操作，满足条件后再进行Conquer。
+若划分之后的数据块还是很大，则进行递归划分操作，满足条件后再进行Conquer。（分治法中的递归划分问题）
 
 
 
@@ -798,7 +800,7 @@ PS：若S为驱动表，开销为500 + 40000 * 1000，相对减少500次IO
 
 一次IO从驱动表中获取几页数据，其余操作同上。
 
-开销可降低为 1000 + (1000 / N) * 500 N为一次性获取的页数，一般为缓冲区数-2
+开销可降低为 1000 + (1000 / N) * 500 N为一次性获取的页数，一般为缓冲区数-2，留两个缓冲区作为S表的读入与输出，剩下的缓冲区都去读取R表中的数据
 
 
 
@@ -837,7 +839,142 @@ do {
     advance r
     mark = NULL
   }
-}
+} while(r)
 ```
 
 开销：R和S排序的IO开销，加上归并时，读取一遍R和S的开销
+
+
+
+### Grace Hash Join
+
+与SNL的区别仅为预处理阶段。
+
+将R表映射到B-1个分区，每个分区的页数都<=B-2，然后将R表的各个分区都读进内存建立哈希映射，然后将S表读入并进行匹配。
+
+以上的做法会导致磁盘扫描次数过多，无法起到减小开销的目的。
+
+Grace Hash Join的操作：
+
+1. 将两张表按照同一个哈希函数分配到不同的分片中，得到B-1个分区，每个分区由两张表组成Ri,Sj(R和S的子表)
+2. 针对每一个分区，将一张表读入内存，建立哈希表，然后读取另一张表进行匹配。
+
+如果分区后仍然无法装入内存，则递归进行进一步分区。
+
+
+
+## Parallel Query
+
+### 并行架构
+
+1. 共享内存
+
+   ![](https://raw.githubusercontent.com/FaustProMaxPX/pic_repository/main/img/database20220709152532.png)
+
+2. 共享磁盘
+
+   ![](https://raw.githubusercontent.com/FaustProMaxPX/pic_repository/main/img/database20220709152604.png)
+
+3. 无共享
+
+   ![](https://raw.githubusercontent.com/FaustProMaxPX/pic_repository/main/img/database20220709152629.png)
+
+本章主要介绍无共享架构的数据库。
+
+
+
+### 并行的种类
+
+1. Intra-query parallel
+
+   不同的线程执行某一个单一的查询
+
+2. Inter-query parallel
+
+   单个或多个线程执行许多不同的查询或事务。
+
+
+
+### 数据划分
+
+由于无共享数据库中的数据分散在不同的机器，因此良好的划分策略可以大幅提升检索效率。
+
+1. Range
+
+   所有的数据根据范围分布到不同的存储器上。适合做等值连接，范围查询，分组。
+
+2. Hash
+
+   通过哈希确定数据所处的分组。适合等值连接，分组。
+
+3. Round-Robin
+
+   轮询策略，可以有效地分散负载。
+
+
+
+Lookup by key
+
+如果数据依据键分布，则可以直接检索到相关的结点。(Range, Hash)
+
+否则就必须广播查询所有的结点。(Round Robin)
+
+插入键值或有唯一性约束的键也类似。
+
+
+
+### Parallel Join
+
+
+
+#### Parallel Grace Hash Join
+
+1. 首先将所有的数据利用哈希函数hn，分布到不同的机器上去。
+2. 等到第1步完成后，每台机器都在本机对得到的数据进行进一步的Hash操作。
+3. 每台机器完成Hash后，进行 GHJ
+
+![](https://raw.githubusercontent.com/FaustProMaxPX/pic_repository/main/img/database20220709163827.png)
+
+整个过程只有第一步需要机器等待数据分发完毕，其他时刻都不存在等待，因此效率会比较高。
+
+
+
+#### Parallel Sort-Merge Join
+
+Pass 0：将数据按照范围传送到指定的机器上去。
+
+范围选取方式：根据输入获取样本，并根据每个范围内的数据量进行分割。如下图所示，频率高的区间，范围小，确保数据在每台机器上平均分布。
+
+![](https://raw.githubusercontent.com/FaustProMaxPX/pic_repository/main/img/database20220709165057.png)
+
+Pass 1：在每台机器上进行Sort-Merge Join操作
+
+![](https://raw.githubusercontent.com/FaustProMaxPX/pic_repository/main/img/database20220709165303.png)
+
+
+
+
+
+#### Symmetric Hash join
+
+无论是Hash join还是Sort Merge Join都有一个等待同步的过程。但Symmetric Hash Join可以做到整个Join过程没有任何等待，且全程只需要流式传输。
+
+这种Join方式让每台机器都为驱动表和被驱动表各维护一张哈希表，每当一个数据到来，就将其添加到对应表的哈希表中，然后让该数据去探索另一张表的哈希表，寻找可以匹配的记录并输出。
+
+![](https://raw.githubusercontent.com/FaustProMaxPX/pic_repository/main/img/database20220709171615.png)
+
+
+
+#### One-side shuffle Join
+
+如果R表本身已经被合理地划分了，就只划分S表，然后在每台机器上进行join并合并结果。
+
+![](https://raw.githubusercontent.com/FaustProMaxPX/pic_repository/main/img/database20220709172320.png)
+
+
+
+#### Broadcast Join
+
+如果R表很小，那就将它传送给每一个获得S表分块的机器上
+
+![](https://raw.githubusercontent.com/FaustProMaxPX/pic_repository/main/img/database20220709172436.png)
